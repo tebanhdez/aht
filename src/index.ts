@@ -4,7 +4,7 @@ import {Telemetry} from "./entity/telemetry";
 import {User} from "./entity/user";
 import bodyParser from "body-parser";
 import Ajv from "ajv";
-import { createHash } from 'node:crypto'
+import { createHash } from 'node:crypto';
 
 const app = express();
 const ajv = new Ajv();
@@ -79,3 +79,4 @@ app.post("/telemetry", bodyParser.json(), async (req, res, next) => {
 app.listen(8080, () => {
     console.log('Server is listening on port 8080');
 });
+module.exports = app;
