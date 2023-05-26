@@ -8,6 +8,8 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization":false,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
