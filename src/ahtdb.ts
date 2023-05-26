@@ -1,5 +1,4 @@
 import { DataSource } from "typeorm";
-import { root } from "./paths";
 import { Telemetry } from "./entity/telemetry";
 import {User} from "./entity/user";
 

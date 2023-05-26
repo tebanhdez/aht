@@ -37,7 +37,7 @@ app.post("/telemetry", bodyParser.json(), async (req, res, next) => {
 
     if(!AppDataSource.isInitialized) {
         await AppDataSource.initialize();
-        let admin = new User();
+        const admin = new User();
         admin.username = adminUserInfo.name;
         admin.hash     = createHash('md5')
             .update(adminUserInfo.pass)
@@ -48,7 +48,7 @@ app.post("/telemetry", bodyParser.json(), async (req, res, next) => {
 
     const authHeader = req.headers.authorization;
     if(!authHeader) {
-        let err = new Error('You are not authenticated!');
+        const err = new Error('You are not authenticated!');
         return next(err)
     } else {
         const auth = Buffer.from(authHeader.split(' ')[1],
@@ -59,7 +59,7 @@ app.post("/telemetry", bodyParser.json(), async (req, res, next) => {
         if(!admin || admin.hash != createHash('md5')
             .update(pass)
             .digest('hex')){
-            let err = new Error('You are not authenticated!');
+            const err = new Error('You are not authenticated!');
             return next(err);
         }
     }

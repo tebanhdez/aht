@@ -1,4 +1,4 @@
-import {expect, jest, test, it, beforeAll, describe} from '@jest/globals';
+import {expect, test, beforeAll, describe} from '@jest/globals';
 import {AppDataSource} from "../src/ahtdb";
 import {Telemetry} from "../src/entity/telemetry";
 
