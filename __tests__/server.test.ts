@@ -1,36 +1,57 @@
-import {expect, test, describe, beforeAll} from '@jest/globals';
-import {AppDataSource} from "../src/ahtdb";
+import {expect, test, describe, jest} from '@jest/globals';
+import {Telemetry} from "../src/entity/telemetry";
 import {User} from "../src/entity/user";
-import {createHash} from "node:crypto";
 
-const app = require("../src/index"); // Link to your server file
+const app = require("../src/index");
 const supertest = require("supertest");
 const request = supertest(app);
 
+const telemetryMock = {"id": 100, "reading": 1234.5678};
+const mockFind : (username: string) => Promise<User> = async function(username: string) : Promise<User> {return {"id": 1, "username": "ahtadmin", "hash":"e22a63fb76874c99488435f26b117e37"};};
+const mockSave : (telemetry: Telemetry) => Promise<Telemetry> = async function(telemetry: Telemetry) : Promise<Telemetry> {return telemetryMock;};
+const mockInit : (pass: string) => Promise<void> = async function(pass: string) : Promise<void> {return;}
+jest.mock('../src/ahtdb', () => ({
+    findUserByUsername: (username: string) => mockFind(username),
+    saveTelemetry     : (telemetry: Telemetry) => mockSave(telemetry),
+    init_db           : (pass: string) => mockInit(pass),
+}));
+
 
 describe('Testing endpoints', () => {
-    beforeAll(async () => {
-        const adminUserInfo = {"name": "ahtadmin", "pass": "passwort"};
-        await AppDataSource.initialize();
-        const admin = new User();
-        admin.username = adminUserInfo.name;
-        admin.hash     = createHash('md5')
-            .update(adminUserInfo.pass)
-            .digest('hex');
-        console.log(admin);
-        await AppDataSource.getRepository(User).save(admin);
-    });
+
     test('respond with valid HTTP status code and get ping from server', async () => {
-        const response = await request.get('/').send();
+        const response = await request.get('/ping').send();
         expect(response.status).toBe(200);
-        expect(response.text).toBe('Hello, world!');
+        expect(response.text).toBe('pong');
     });
     test('respond with valid HTTP status code and respond with saved entity', async () => {
         const response = await request
             .post('/telemetry')
             .set('Authorization', 'Basic YWh0YWRtaW46cGFzc3dvcnQ=')
-            .send({reading: 1111});
+            .send({reading: 1234.5678});
         expect(response.status).toBe(200);
-        console.log(response);
+        expect(telemetryMock).toMatchObject(JSON.parse(response.text));
+    });
+    test('respond with valid HTTP status 401 code when auth header is missing', async () => {
+        const response = await request
+            .post('/telemetry')
+            .send({reading: 1234.5678});
+        expect(response.status).toBe(401);
+        expect(response.text).toBe('Unauthorized');
+    });
+    test('respond with HTTP status 401 code when an invalid auth header password is used', async () => {
+        const response = await request
+            .post('/telemetry')
+            .set('Authorization', '####')
+            .send({reading: 1234.5678});
+        expect(response.status).toBe(401);
+        expect(response.text).toBe('Unauthorized');
+    });
+    test('respond with valid HTTP status code if invalid payload format', async () => {
+        const response = await request
+            .post('/telemetry')
+            .set('Authorization', 'Basic YWh0YWRtaW46cGFzc3dvcnQ=')
+            .send({reading: ""});
+        expect(response.status).toBe(400);
     });
 });
